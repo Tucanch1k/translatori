@@ -1,6 +1,3 @@
-# scanner.py
-# Лексический анализатор (сканер)
-
 import sys
 from enum import Enum
 

@@ -1,6 +1,3 @@
-# main.py
-# Точка входа в программу-транслятор
-
 from my_scanner import Scanner, LexerError
 from my_parser import Parser, ParserError
 
@@ -8,7 +5,7 @@ from my_parser import Parser, ParserError
 def main():
     print("Транслятор арифметических выражений")
     print("Поддержка: +, *, pow(a,b), скобки")
-    print("Пример: pow(2, pow(3,4))")
+    print("Пример: pow(2, pow(3, 4))")
     print("Введите выражение:")
 
     try:

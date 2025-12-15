@@ -1,6 +1,3 @@
-# parser.py
-# Рекурсивный нисходящий предикативный парсер с семантикой
-
 from my_scanner import TokenType
 import math
 
