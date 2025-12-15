@@ -1,0 +1,2 @@
+# translatori
+Translatori Lab5
