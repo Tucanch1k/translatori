@@ -13,15 +13,17 @@
 
 ## Используемая грамматика
 
-Expr -> Term
-Expr -> Expr + Term
-Term -> Factor
-Term -> Term * Factor
-Factor -> num
-Factor -> pow_func
-pow_func -> pow ( Expr , Expr )
+* Expr -> Term
+* Expr -> Expr + Term
+* Term -> Factor
+* Term -> Term * Factor
+* Factor -> num
+* Factor -> pow_func
+* pow_func -> pow ( Expr , Expr )
+
 
 ### Токены
+
 num - токен, задающий какое-либо число
 
 
