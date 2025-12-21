@@ -23,18 +23,34 @@ class Parser:
     POW_FUNC    → pow ( Expr , Expr )
     """
 
+    TOKEN_NAMES = {
+        TokenType.NUM: "число",
+        TokenType.PLUS: "+",
+        TokenType.MULT: "*",
+        TokenType.LPAREN: "(",
+        TokenType.RPAREN: ")",
+        TokenType.COMMA: ",",
+        TokenType.POW: "pow",
+        TokenType.EOF: "конец выражения"
+    }
+    
+
     def __init__(self, scanner):
         self.scanner = scanner
         self.current_token = self.scanner.get_next_token()
 
     def error(self, message):
-        raise ParserError(message)
+        pos = self.current_token.pos
+        raise ParserError("Синтаксическая ошибка в позиции {}: {}".format(pos, message))
 
     def eat(self, token_type):
         if self.current_token.type == token_type:
             self.current_token = self.scanner.get_next_token()
         else:
-            self.error("Ожидался токен {}, получен {}".format(token_type, self.current_token.type))
+            expected = self.TOKEN_NAMES.get(token_type, str(token_type))
+            found = self.TOKEN_NAMES.get(self.current_token.type, str(self.current_token.type))
+            self.error("ожидалось {}, получено {}".format(expected, found))
+
 
     # Expr → Term Expr'
     def expr(self):
@@ -79,7 +95,8 @@ class Parser:
             self.eat(TokenType.RPAREN)
             return value
 
-        self.error("Ошибка в Factor")
+        self.error("ожидалось {}, {} или {}".format(self.TOKEN_NAMES[TokenType.NUM], self.TOKEN_NAMES[TokenType.POW], self.TOKEN_NAMES[TokenType.LPAREN]))
+
 
     # POW_FUNC → pow ( Expr , Expr )
     def pow_func(self):
@@ -95,5 +112,5 @@ class Parser:
     def parse(self):
         result = self.expr()
         if self.current_token.type != TokenType.EOF:
-            self.error("Лишние символы после конца выражения")
+            self.error("лишние символы после конца выражения")
         return result

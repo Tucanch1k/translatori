@@ -1,4 +1,3 @@
-import sys
 from enum import Enum
 
 
@@ -6,7 +5,7 @@ class TokenType(Enum):
     NUM = 1
     PLUS = 2
     MULT = 3
-    LPAREN = 4 
+    LPAREN = 4
     RPAREN = 5
     COMMA = 6
     POW = 7
@@ -14,12 +13,13 @@ class TokenType(Enum):
 
 
 class Token:
-    def __init__(self, token_type, value=None):
+    def __init__(self, token_type, value=None, pos=None):
         self.type = token_type
         self.value = value
+        self.pos = pos
 
     def __repr__(self):
-        return "Token({}, {})".format(self.type, self.value)
+        return "Token({}, {}, pos={}).format(self.type, self.value, self.pos)"
 
 
 class LexerError(Exception):
@@ -43,19 +43,31 @@ class Scanner:
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
 
+    # num -> [-]digit+
     def number(self):
+        start_pos = self.pos
+        sign = 1
+
+        if self.current_char == '-':
+            sign = -1
+            self.advance()
+            if self.current_char is None or not self.current_char.isdigit():
+                raise LexerError("Лексическая ошибка в позиции {}: '-' не является числом".format(start_pos))
+
         result = ""
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
             self.advance()
-        return int(result)
+
+        return sign * int(result), start_pos
 
     def identifier(self):
+        start_pos = self.pos
         result = ""
         while self.current_char is not None and self.current_char.isalpha():
             result += self.current_char
             self.advance()
-        return result
+        return result, start_pos
 
     def get_next_token(self):
         while self.current_char is not None:
@@ -64,36 +76,42 @@ class Scanner:
                 self.skip_whitespace()
                 continue
 
-            if self.current_char.isdigit():
-                return Token(TokenType.NUM, self.number())
+            if self.current_char.isdigit() or self.current_char == '-':
+                value, pos = self.number()
+                return Token(TokenType.NUM, value, pos)
 
             if self.current_char.isalpha():
-                ident = self.identifier()
+                ident, pos = self.identifier()
                 if ident == "pow":
-                    return Token(TokenType.POW)
+                    return Token(TokenType.POW, ident, pos)
                 else:
-                    raise LexerError("Неизвестный идентификатор: {}".format(ident))
+                    raise LexerError("Лексическая ошибка в позиции {}: недопустимый символ '{}'".format(pos, ident))
 
             if self.current_char == '+':
+                pos = self.pos
                 self.advance()
-                return Token(TokenType.PLUS)
+                return Token(TokenType.PLUS, '+', pos)
 
             if self.current_char == '*':
+                pos = self.pos
                 self.advance()
-                return Token(TokenType.MULT)
+                return Token(TokenType.MULT, '*', pos)
 
             if self.current_char == '(':
+                pos = self.pos
                 self.advance()
-                return Token(TokenType.LPAREN)
+                return Token(TokenType.LPAREN, '(', pos)
 
             if self.current_char == ')':
+                pos = self.pos
                 self.advance()
-                return Token(TokenType.RPAREN)
+                return Token(TokenType.RPAREN, ')', pos)
 
             if self.current_char == ',':
+                pos = self.pos
                 self.advance()
-                return Token(TokenType.COMMA)
+                return Token(TokenType.COMMA, ',', pos)
 
-            raise LexerError("Недопустимый символ: {}".format(self.current_char))
+            raise LexerError("Лексическая ошибка в позиции {}: недопустимый символ '{}'".format(self.pos, self.current_char))
 
-        return Token(TokenType.EOF)
+        return Token(TokenType.EOF, None, self.pos)

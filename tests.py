@@ -1,44 +1,44 @@
 import unittest
-
 from my_scanner import Scanner, LexerError
 from my_parser import Parser, ParserError
 
 
 def evaluate(expr):
-    """
-    Выполняет полный цикл трансляции:
-    строка -> токены -> синтаксический разбор -> вычисление
-    """
     print("\n----------------------------------")
     print("Входное выражение: {}".format(expr))
-
-    scanner = Scanner(expr)
-    parser = Parser(scanner)
-    result = parser.parse()
-
-    print("Результат: {}".format(result))
-    return result
+    try:
+        scanner = Scanner(expr)
+        parser = Parser(scanner)
+        result = parser.parse()
+        print("Результат: {}".format(result))
+        return result
+    except (LexerError, ParserError) as e:
+        print(e)
+        raise
 
 
 def evaluate_with_error(expr, error_type):
-    """
-    Проверяет, что при обработке выражения возникает ожидаемая ошибка
-    """
     print("\n----------------------------------")
     print("Входное выражение: {}".format(expr))
     print("Ожидаемая ошибка: {}".format(error_type.__name__))
-
-    with unittest.TestCase().assertRaises(error_type):
+    try:
         scanner = Scanner(expr)
         parser = Parser(scanner)
         parser.parse()
+    except error_type as e:
+        print("Ошибка корректно обнаружена: {}".format(e))
+        return
+    except Exception as e:
+        # Любая другая ошибка
+        print("Обнаружена неожиданная ошибка: {}".format(e))
+        raise
+    # Если ошибка не произошла
+    raise AssertionError("Ожидаемая ошибка {} не произошла".format(error_type.__name__))
 
-    print("Ошибка корректно обнаружена")
 
+# ---------- Тесты ----------
 
 class TestCorrectExpressions(unittest.TestCase):
-    """Корректные выражения"""
-
     def test_single_number(self):
         self.assertEqual(evaluate("5"), 5)
 
@@ -61,15 +61,16 @@ class TestCorrectExpressions(unittest.TestCase):
         self.assertEqual(evaluate("pow(2,pow(3,2))"), 512)
 
     def test_complex_expression(self):
-        self.assertEqual(
-            evaluate("2 + pow(2,3) * (1 + 1)"),
-            18
-        )
+        self.assertEqual(evaluate("2 + pow(2,3) * (1 + 1)"), 18)
+
+    def test_negative_number(self):
+        self.assertEqual(evaluate("-5 + 3"), -2)
+
+    def test_negative_in_pow(self):
+        self.assertEqual(evaluate("pow(-2,3)"), -8)
 
 
 class TestLexerErrors(unittest.TestCase):
-    """Лексические ошибки"""
-
     def test_unknown_symbol(self):
         evaluate_with_error("2 & 3", LexerError)
 
@@ -84,8 +85,6 @@ class TestLexerErrors(unittest.TestCase):
 
 
 class TestParserErrors(unittest.TestCase):
-    """Синтаксические ошибки"""
-
     def test_missing_right_parenthesis(self):
         evaluate_with_error("(2+3", ParserError)
 
@@ -112,8 +111,6 @@ class TestParserErrors(unittest.TestCase):
 
 
 class TestEdgeCases(unittest.TestCase):
-    """Граничные случаи"""
-
     def test_whitespace(self):
         self.assertEqual(evaluate("   2   +   3   "), 5)
 

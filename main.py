@@ -15,14 +15,12 @@ def main():
         result = parser.parse()
         print("Результат:", result)
 
-    except LexerError as le:
-        print("Лексическая ошибка:", le)
-
-    except ParserError as pe:
-        print("Синтаксическая ошибка:", pe)
+    except (LexerError, ParserError) as e:
+        # Сообщение уже содержит тип и позицию ошибки
+        print(e)
 
     except Exception as e:
-        print("Ошибка:", e)
+        print("Внутренняя ошибка:", e)
 
 
 if __name__ == "__main__":
